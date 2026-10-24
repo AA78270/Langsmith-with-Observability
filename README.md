@@ -195,8 +195,3 @@ langsmith observability/
 ├── requirements.txt
 └── .env                # NOT committed
 ```
-
-## Credits
-
-Course: *Production-Grade LLM Engineering*, Module 4 (instructor: Divesh).
-Built with LangChain, LangGraph, LangSmith, Groq, Gemini, FAISS, Google Serper and Streamlit.
