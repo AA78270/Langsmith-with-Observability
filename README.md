@@ -1,4 +1,4 @@
-# LangSmith: LLM Tracing & Observability
+# Documnet-Intelligence-Agent
 
 ## What is LangSmith?
 
@@ -12,37 +12,8 @@ With LangSmith:     llm.invoke("What is RAG?")  ->  the answer PLUS
                       full prompt, full response, cost
 ```
 
-### Why it's useful
-
-| Problem in production | How LangSmith helps |
-|-----------------------|---------------------|
-| "Why did the LLM give a bad answer?" | Shows the exact prompt, including retrieved context |
-| "Which users cost the most tokens?" | Filter by `metadata.user_id` and sum tokens |
-| "Is my agent looping or using the wrong tool?" | Every tool call and reasoning step is a visible child run |
-| "How slow are my calls?" | Latency is recorded per run |
-| "What changed since yesterday?" | Compare runs over time using tags and metadata |
-
 ## How tracing works
 
-```mermaid
-graph TD
-    ENV["3 env vars<br/>LANGSMITH_TRACING / API_KEY / PROJECT"]
-
-    subgraph Auto["Auto-traced (no code)"]
-        LLM["LangChain LLM calls"]
-        LG["LangGraph nodes"]
-        RET["LangChain retrievers"]
-    end
-
-    subgraph Manual["Manual tracing"]
-        PY["@traceable functions"]
-        META["Metadata + tags<br/>get_current_run_tree()"]
-    end
-
-    ENV --> Auto
-    Auto --> DB[("LangSmith Dashboard")]
-    Manual --> DB
-```
 ### Exp 1: Auto-tracing
 
 ```python
@@ -91,24 +62,6 @@ In a real app I could filter by `metadata.user_id` to see one user's traces and 
 
 ### Exp 4: Traced RAG
 
-```mermaid
-flowchart LR
-    TXT[("llm_production_guide.txt")]
-
-    subgraph Startup["At startup"]
-        TXT -->|TextLoader| RAW["Raw doc"]
-        RAW -->|"splitter<br/>chunk_size=600, overlap=80"| CHK["27 chunks"]
-        CHK -->|"gemini-embedding-2-preview"| VEC[("FAISS index")]
-    end
-
-    subgraph Query["Every query"]
-        Q(["Question"]) --> VEC
-        VEC -->|"top 3 chunks"| CTX["Context"]
-        CTX --> LLM["Groq LLM"]
-        LLM --> ANS(["Answer"])
-    end
-```
-
 The RAG function is wrapped in `@traceable`, and I attach `user_id` and `chunks_retrieved` as metadata. In LangSmith I can open the LLM run and see the full prompt with the retrieved chunks.
 
 ### Exp 5: Multi-tool ReAct agent
@@ -117,14 +70,6 @@ The agent chooses between two tools:
 
 - `search_local_docs`: searches the FAISS index of the LLM production guide
 - `google_search`: live web results through Google Serper
-
-```mermaid
-flowchart TD
-    Q(["User question"]) --> A["ReAct agent<br/>create_agent + Groq"]
-    A -->|"LLM topic"| L["search_local_docs"] --> A
-    A -->|"current events"| G["google_search"] --> A
-    A --> ANS(["Final answer"])
-```
 
 ```python
 agent = create_agent(
